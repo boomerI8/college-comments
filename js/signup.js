@@ -176,3 +176,4 @@ function getReadableAuthError(code) {
   }
   return "An error occurred: " + code;
 }
+
