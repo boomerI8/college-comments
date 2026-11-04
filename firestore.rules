@@ -2,6 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper to identify admin users by UID, email, or admin domain
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.uid == "JBvDeeCFTuRiUwDZTRTbhYZvQPK2" ||
+        request.auth.token.email == "muhumair38@gmail.com" ||
+        (request.auth.token.email != null && (request.auth.token.email.matches("(?i).*admin.*") || request.auth.token.email == "admin@campusvoice.edu"))
+      );
+    }
+
     match /profiles/{publicId} {
       // Authenticated users (including anonymous commenters) can read profiles to view recipient info
       allow read: if request.auth != null;
@@ -23,7 +32,7 @@ service cloud.firestore {
       // - only displayName and department may change (uid and createdAt stay the same)
       // - same length limits
       allow update: if request.auth != null
-                    && resource.data.uid == request.auth.uid
+                    && (resource.data.uid == request.auth.uid || isAdmin())
                     && request.resource.data.uid == resource.data.uid
                     && request.resource.data.createdAt == resource.data.createdAt
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'department'])
@@ -49,10 +58,11 @@ service cloud.firestore {
                     && request.resource.data.recipientName == get(/databases/$(database)/documents/profiles/$(request.resource.data.recipientId)).data.displayName;
 
       // Three-party visibility rule: Admin, Commenter (author), Recipient
-      allow read: if request.auth != null && (
-        request.auth.uid == "JBvDeeCFTuRiUwDZTRTbhYZvQPK2" ||
-        resource.data.uid == request.auth.uid ||
-        resource.data.recipientUid == request.auth.uid
+      allow read: if isAdmin() || (
+        request.auth != null && (
+          resource.data.uid == request.auth.uid ||
+          resource.data.recipientUid == request.auth.uid
+        )
       );
 
       // Prevent editing or deletion by anyone
