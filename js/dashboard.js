@@ -31,7 +31,7 @@ const cancelEditBtn = document.getElementById("cancelEditBtn");
 const qrCardSection = document.getElementById("qrCardSection");
 const qrCardName = document.getElementById("qrCardName");
 const qrCardDept = document.getElementById("qrCardDept");
-const qrcodeContainer = document.getElementById("qrcode");
+const qrCanvas = document.getElementById("qrCanvas");
 const qrTargetUrlEl = document.getElementById("qrTargetUrl");
 const downloadPngBtn = document.getElementById("downloadPngBtn");
 const printBtn = document.getElementById("printBtn");
@@ -45,7 +45,6 @@ const logoutBtn = document.getElementById("logoutBtn");
 let currentUser = null;
 let currentPublicId = null;
 let currentProfile = null;
-let qrcodeInstance = null;
 let targetUrl = "";
 
 onAuthStateChanged(auth, async (user) => {
@@ -141,17 +140,22 @@ function generateQR() {
   qrTargetUrlEl.textContent = targetUrl;
   previewPageLink.href = targetUrl;
 
-  qrcodeContainer.innerHTML = "";
-  // Generate QR code using qrcodejs
-  if (window.QRCode) {
-    qrcodeInstance = new window.QRCode(qrcodeContainer, {
-      text: targetUrl,
-      width: 200,
-      height: 200,
-      colorDark: "#0f172a",
-      colorLight: "#ffffff",
-      correctLevel: window.QRCode.CorrectLevel.H
-    });
+  const renderCode = () => {
+    if (window.QRious && qrCanvas) {
+      new window.QRious({
+        element: qrCanvas,
+        value: targetUrl,
+        size: 240,
+        level: "H"
+      });
+    }
+  };
+
+  if (window.QRious) {
+    renderCode();
+  } else {
+    // Retry shortly if library script is still loading
+    setTimeout(renderCode, 150);
   }
 }
 
@@ -243,6 +247,7 @@ editForm.addEventListener("submit", async (e) => {
       currentProfile.department = trimmedDept || "";
 
       updateUI();
+      generateQR();
       showEditAlert("Profile updated successfully!", false);
     }
 
@@ -271,13 +276,12 @@ function showEditAlert(msg, isError) {
 
 // Download PNG with full name, department, and QR code rendered on single canvas
 downloadPngBtn.addEventListener("click", () => {
-  const qrImg = qrcodeContainer.querySelector("canvas") || qrcodeContainer.querySelector("img");
-  if (!qrImg) {
-    alert("QR code is still generating. Please try again in a moment.");
+  if (!qrCanvas) {
+    alert("QR code canvas is not available.");
     return;
   }
 
-  // Create high-res canvas
+  // Create high-res download card canvas
   const canvas = document.createElement("canvas");
   const width = 640;
   const height = 760;
@@ -293,7 +297,7 @@ downloadPngBtn.addEventListener("click", () => {
   ctx.fillStyle = "#1e3a8a";
   ctx.fillRect(0, 0, width, 14);
 
-  // Logo text
+  // Header Title
   ctx.font = "bold 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
   ctx.fillStyle = "#1e3a8a";
   ctx.textAlign = "center";
@@ -302,11 +306,11 @@ downloadPngBtn.addEventListener("click", () => {
   // Full Name
   ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
   ctx.fillStyle = "#0f172a";
-  ctx.fillText(currentProfile.displayName || "Recipient", width / 2, 98);
+  ctx.fillText(currentProfile ? (currentProfile.displayName || "Recipient") : "Recipient", width / 2, 98);
 
   // Department line
   let nextY = 130;
-  if (currentProfile.department) {
+  if (currentProfile && currentProfile.department) {
     ctx.font = "16px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     ctx.fillStyle = "#64748b";
     ctx.fillText(currentProfile.department, width / 2, nextY);
@@ -317,7 +321,7 @@ downloadPngBtn.addEventListener("click", () => {
   const qrSize = 360;
   const qrX = (width - qrSize) / 2;
   const qrY = nextY + 10;
-  ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+  ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
 
   // Subtitle instructions
   const footerY = qrY + qrSize + 40;
@@ -331,7 +335,7 @@ downloadPngBtn.addEventListener("click", () => {
   ctx.fillText(targetUrl, width / 2, footerY + 28);
 
   // Trigger download
-  const safeName = (currentProfile.displayName || "qr-card").replace(/[^a-zA-Z0-9_\-]/g, "_");
+  const safeName = (currentProfile?.displayName || "qr-card").replace(/[^a-zA-Z0-9_\-]/g, "_");
   const link = document.createElement("a");
   link.download = `${safeName}-qr.png`;
   link.href = canvas.toDataURL("image/png");

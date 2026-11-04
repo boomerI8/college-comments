@@ -6,8 +6,8 @@
   <title>Recipient Dashboard - Campus Voice</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
   <link rel="stylesheet" href="css/styles.css">
-  <!-- Lightweight pure-JS QRCode generator library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Bundled local pure-JS QRious library -->
+  <script src="js/qrious.min.js"></script>
 </head>
 <body>
   <div class="container" style="max-width: 650px;">
@@ -67,7 +67,7 @@
       <p id="qrCardDept" style="color: var(--text-muted); font-size: 0.92rem; margin-top: 2px;">Department</p>
       
       <div class="qr-wrapper">
-        <div id="qrcode"></div>
+        <canvas id="qrCanvas" style="display: block; margin: 0 auto;"></canvas>
       </div>
 
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;">
@@ -110,4 +110,3 @@
   <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
-
