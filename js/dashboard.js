@@ -6,12 +6,14 @@ import {
 import { 
   doc, 
   getDoc, 
+  setDoc,
   updateDoc, 
   collection, 
   query, 
   where, 
   getDocs, 
-  onSnapshot 
+  onSnapshot,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // DOM elements
@@ -26,6 +28,7 @@ const editAlert = document.getElementById("editAlert");
 const saveEditBtn = document.getElementById("saveEditBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 
+const qrCardSection = document.getElementById("qrCardSection");
 const qrCardName = document.getElementById("qrCardName");
 const qrCardDept = document.getElementById("qrCardDept");
 const qrcodeContainer = document.getElementById("qrcode");
@@ -34,6 +37,7 @@ const downloadPngBtn = document.getElementById("downloadPngBtn");
 const printBtn = document.getElementById("printBtn");
 const previewPageLink = document.getElementById("previewPageLink");
 
+const receivedCommentsSection = document.getElementById("receivedCommentsSection");
 const commentsList = document.getElementById("commentsList");
 const commentCountBadge = document.getElementById("commentCountBadge");
 const logoutBtn = document.getElementById("logoutBtn");
@@ -55,15 +59,19 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadRecipientProfile(uid) {
   try {
-    // 1. Check if publicId is in URL query (?id=...)
+    // 1. Check if publicId is in URL query (?id=...) or local storage
     const urlParams = new URLSearchParams(window.location.search);
     const paramId = urlParams.get("id") || localStorage.getItem("currentPublicId");
 
     if (paramId) {
-      const snap = await getDoc(doc(db, "profiles", paramId));
-      if (snap.exists() && snap.data().uid === uid) {
-        currentPublicId = paramId;
-        currentProfile = snap.data();
+      try {
+        const snap = await getDoc(doc(db, "profiles", paramId));
+        if (snap.exists() && snap.data().uid === uid) {
+          currentPublicId = paramId;
+          currentProfile = snap.data();
+        }
+      } catch (e) {
+        console.warn("Could not fetch profile by param ID:", e);
       }
     }
 
@@ -79,18 +87,35 @@ async function loadRecipientProfile(uid) {
       }
     }
 
+    // 3. If still no profile, allow the user to create one directly
     if (!currentProfile) {
-      displayRecipientName.textContent = "Profile Not Found";
-      displayRecipientDept.textContent = "Please sign up to create your profile.";
+      displayRecipientName.textContent = "Set Up Your Profile";
+      displayRecipientDept.textContent = "Please enter your full name and department below to create your personal QR profile.";
+      toggleEditBtn.textContent = "Create Profile";
+      saveEditBtn.textContent = "Create Profile";
+      editSection.classList.remove("hidden");
+      qrCardSection.classList.add("hidden");
+      receivedCommentsSection.classList.add("hidden");
       return;
     }
+
+    toggleEditBtn.textContent = "Edit name";
+    saveEditBtn.textContent = "Save Changes";
+    qrCardSection.classList.remove("hidden");
+    receivedCommentsSection.classList.remove("hidden");
 
     updateUI();
     generateQR();
     listenToReceivedComments(uid);
   } catch (err) {
     console.error("Error loading profile:", err);
-    displayRecipientName.textContent = "Error loading profile";
+    if (err.code === "permission-denied") {
+      displayRecipientName.textContent = "Firestore Rules Setup Required";
+      displayRecipientDept.textContent = "Please ensure the updated firestore.rules have been published in your Firebase Console.";
+    } else {
+      displayRecipientName.textContent = "Error loading profile";
+      displayRecipientDept.textContent = err.message || "Please try reloading the page.";
+    }
   }
 }
 
@@ -107,6 +132,8 @@ function updateUI() {
 }
 
 function generateQR() {
+  if (!currentPublicId) return;
+
   const loc = window.location;
   const path = loc.pathname.substring(0, loc.pathname.lastIndexOf("/") + 1);
   targetUrl = `${loc.origin}${path}index.html?to=${currentPublicId}`;
@@ -135,11 +162,13 @@ toggleEditBtn.addEventListener("click", () => {
 });
 
 cancelEditBtn.addEventListener("click", () => {
-  editSection.classList.add("hidden");
-  editAlert.style.display = "none";
+  if (currentProfile) {
+    editSection.classList.add("hidden");
+    editAlert.style.display = "none";
+  }
 });
 
-// Save edited name and department (updates displayName and department only)
+// Save edited name and department (updates displayName and department, or creates profile if new)
 editForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   editAlert.style.display = "none";
@@ -170,30 +199,67 @@ editForm.addEventListener("submit", async (e) => {
   }
 
   saveEditBtn.disabled = true;
-  saveEditBtn.textContent = "Saving...";
+  saveEditBtn.textContent = currentPublicId ? "Saving..." : "Creating Profile...";
 
   try {
-    // Only displayName and department are updated
-    await updateDoc(doc(db, "profiles", currentPublicId), {
-      displayName: trimmedName,
-      department: trimmedDept
-    });
+    if (!currentPublicId) {
+      // Create new profile for this user
+      const profileRef = doc(collection(db, "profiles"));
+      currentPublicId = profileRef.id;
 
-    currentProfile.displayName = trimmedName;
-    currentProfile.department = trimmedDept;
+      await setDoc(profileRef, {
+        uid: currentUser.uid,
+        displayName: trimmedName,
+        department: trimmedDept || "",
+        createdAt: serverTimestamp()
+      });
 
-    updateUI();
-    showEditAlert("Profile updated successfully!", false);
+      currentProfile = {
+        uid: currentUser.uid,
+        displayName: trimmedName,
+        department: trimmedDept || "",
+        createdAt: new Date()
+      };
+
+      localStorage.setItem("currentPublicId", currentPublicId);
+
+      toggleEditBtn.textContent = "Edit name";
+      saveEditBtn.textContent = "Save Changes";
+      qrCardSection.classList.remove("hidden");
+      receivedCommentsSection.classList.remove("hidden");
+
+      updateUI();
+      generateQR();
+      listenToReceivedComments(currentUser.uid);
+      showEditAlert("Profile created successfully!", false);
+    } else {
+      // Existing profile: update displayName and department only
+      await updateDoc(doc(db, "profiles", currentPublicId), {
+        displayName: trimmedName,
+        department: trimmedDept || ""
+      });
+
+      currentProfile.displayName = trimmedName;
+      currentProfile.department = trimmedDept || "";
+
+      updateUI();
+      showEditAlert("Profile updated successfully!", false);
+    }
+
     setTimeout(() => {
       editSection.classList.add("hidden");
       editAlert.style.display = "none";
-    }, 1500);
+    }, 1200);
   } catch (err) {
-    console.error("Update error:", err);
-    showEditAlert("Error updating profile. Please try again.", true);
+    console.error("Profile save error:", err);
+    if (err.code === "permission-denied") {
+      showEditAlert("Permission denied: Please ensure the updated firestore.rules have been published in your Firebase Console.", true);
+    } else {
+      showEditAlert(err.message || "Error updating profile. Please try again.", true);
+    }
   } finally {
     saveEditBtn.disabled = false;
-    saveEditBtn.textContent = "Save Changes";
+    saveEditBtn.textContent = currentPublicId ? "Save Changes" : "Create Profile";
   }
 });
 
@@ -339,4 +405,3 @@ function listenToReceivedComments(uid) {
 function escapeHtml(str) {
   return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
 }
-
