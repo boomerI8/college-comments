@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /comments/{commentId} {
+      // Any authenticated user can post their own comment (max 1000 chars, valid timestamp)
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 1000
+                    && request.resource.data.createdAt == request.time;
+
+      // Admin can read all; regular users can only read their own
+      allow read: if request.auth != null && 
+                  (request.auth.uid == "JBvDeeCFTuRiUwDZTRTbhYZvQPK2" || resource.data.uid == request.auth.uid);
+
+      // Prevent editing or deletion by anyone
+      allow update, delete: if false;
+    }
+  }
+}
