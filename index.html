@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Voice - Student Comments</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo-placeholder">UNI</div>
+      <h1>Campus Voice</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Share your comments with the university</p>
+    </div>
+
+    <div class="card">
+      <form id="commentForm">
+        <textarea id="commentInput" rows="4" maxlength="1000" placeholder="Write your comment here..." required></textarea>
+        <div class="meta-row">
+          <span id="cooldownNotice"></span>
+          <span id="charCounter">0 / 1000</span>
+        </div>
+        <div id="alertBox" class="alert"></div>
+        <button type="submit" id="submitBtn" disabled>Submitting...</button>
+      </form>
+    </div>
+
+    <h2>Your Recent Comments</h2>
+    <div id="commentsContainer" class="comment-list" style="margin-top: 12px;">
+      <p style="color: var(--text-muted); font-size: 0.85rem;">Loading your comments...</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
