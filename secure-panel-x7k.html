@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container" style="max-width: 800px;">
+    
+    <!-- Login Form -->
+    <div id="loginSection" class="card">
+      <h2 style="margin-bottom: 16px;">Admin Access</h2>
+      <form id="loginForm">
+        <input type="email" id="adminEmail" placeholder="Admin Email" required>
+        <input type="password" id="adminPassword" placeholder="Password" required>
+        <div id="loginAlert" class="alert"></div>
+        <button type="submit" id="loginBtn">Login</button>
+      </form>
+    </div>
+
+    <!-- Admin Panel (Hidden until authenticated) -->
+    <div id="adminPanel" class="hidden">
+      <div class="admin-header">
+        <h2>All Submitted Comments</h2>
+        <button id="logoutBtn" class="btn-logout">Logout</button>
+      </div>
+
+      <div class="card" style="padding: 12px; margin-bottom: 16px;">
+        <input type="text" id="searchInput" placeholder="Search comments..." style="margin-bottom: 0;">
+      </div>
+
+      <div class="card" style="padding: 0; overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date / Time</th>
+              <th>Anonymous ID</th>
+              <th>Comment Text</th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody">
+            <tr>
+              <td colspan="3" style="text-align: center; color: var(--text-muted);">Loading comments...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
