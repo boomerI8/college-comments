@@ -53,13 +53,16 @@ function loadAllComments() {
     });
     renderTable(allComments);
   }, (error) => {
-    adminTableBody.innerHTML = `<tr><td colspan="3" style="color: var(--error);">Permission denied or load error.</td></tr>`;
+    console.error("Admin load error:", error);
+    adminTableBody.innerHTML = `<tr><td colspan="5" style="color: var(--error);">Permission denied or load error.</td></tr>`;
   });
 }
 
 searchInput.addEventListener("input", () => {
-  const term = searchInput.value.toLowerCase();
+  const term = searchInput.value.toLowerCase().trim();
   const filtered = allComments.filter(c => 
+    (c.recipientName && c.recipientName.toLowerCase().includes(term)) ||
+    (c.recipientDepartment && c.recipientDepartment.toLowerCase().includes(term)) ||
     (c.text && c.text.toLowerCase().includes(term)) ||
     (c.uid && c.uid.toLowerCase().includes(term))
   );
@@ -69,19 +72,23 @@ searchInput.addEventListener("input", () => {
 function renderTable(comments) {
   adminTableBody.innerHTML = "";
   if (comments.length === 0) {
-    adminTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No comments found.</td></tr>`;
+    adminTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No comments found.</td></tr>`;
     return;
   }
 
   comments.forEach((c) => {
     const dateStr = c.createdAt ? new Date(c.createdAt.toDate()).toLocaleString() : "N/A";
     const shortUid = c.uid ? c.uid.substring(0, 8) + "..." : "Anonymous";
+    const recipientName = c.recipientName || "General / Unknown";
+    const department = c.recipientDepartment || "—";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
+      <td><strong>${escapeHtml(recipientName)}</strong></td>
+      <td>${escapeHtml(department)}</td>
+      <td>${escapeHtml(c.text || "")}</td>
       <td style="white-space: nowrap;">${dateStr}</td>
       <td style="font-family: monospace;">${shortUid}</td>
-      <td>${escapeHtml(c.text || "")}</td>
     `;
     adminTableBody.appendChild(tr);
   });

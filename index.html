@@ -11,25 +11,55 @@
   <div class="container">
     <div class="header">
       <div class="logo-placeholder">UNI</div>
-      <h1>Campus Voice</h1>
-      <p style="color: var(--text-muted); font-size: 0.9rem;">Share your comments with the university</p>
+      <h1 id="pageHeading">Campus Voice</h1>
+      <p id="pageSubheading" style="color: var(--text-muted); font-size: 0.9rem;">Share your comments with the university</p>
     </div>
 
+    <!-- Recipient Info Header (Shown when ?to=PUBLICID is present) -->
+    <div id="recipientHeader" class="card hidden" style="text-align: center; border-left: 4px solid var(--primary);">
+      <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 2px;">
+        Leave a comment for
+      </p>
+      <h2 id="recipientDisplayName" style="color: var(--primary); font-size: 1.4rem;">Loading...</h2>
+      <p id="recipientDepartment" style="color: var(--text-muted); font-size: 0.92rem; margin-top: 2px;"></p>
+      
+      <!-- Confirmation line so a wrong scan is obvious before submitting -->
+      <div class="confirmation-box" style="margin-top: 14px; margin-bottom: 0;">
+        <span>🔍 <strong>Is this the right person?</strong> Please confirm this is who you intended to comment for before submitting.</span>
+      </div>
+    </div>
+
+    <!-- General Notice if no recipient specified -->
+    <div id="noRecipientNotice" class="card hidden" style="text-align: center; background-color: #f1f5f9;">
+      <p style="font-size: 0.9rem; color: var(--text-muted);">
+        You are submitting a general comment. If you scanned a QR code, make sure the link includes the recipient ID.
+      </p>
+    </div>
+
+    <!-- Comment Submission Form -->
     <div class="card">
       <form id="commentForm">
-        <textarea id="commentInput" rows="4" maxlength="1000" placeholder="Write your comment here..." required></textarea>
+        <textarea id="commentInput" rows="4" maxlength="1000" placeholder="Write your anonymous comment here..." required></textarea>
         <div class="meta-row">
           <span id="cooldownNotice"></span>
           <span id="charCounter">0 / 1000</span>
         </div>
         <div id="alertBox" class="alert"></div>
-        <button type="submit" id="submitBtn" disabled>Submitting...</button>
+        <button type="submit" id="submitBtn" disabled>Connecting...</button>
       </form>
     </div>
 
-    <h2>Your Recent Comments</h2>
+    <!-- Commenter's My Sent Comments List -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h2>My Sent Comments</h2>
+    </div>
     <div id="commentsContainer" class="comment-list" style="margin-top: 12px;">
       <p style="color: var(--text-muted); font-size: 0.85rem;">Loading your comments...</p>
+    </div>
+
+    <!-- Footer link to create a recipient profile -->
+    <div class="nav-links" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+      <a href="signup.html">Want to receive comments? Create your personal QR card &rarr;</a>
     </div>
   </div>
 

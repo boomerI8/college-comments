@@ -1,18 +1,59 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    match /profiles/{publicId} {
+      // Authenticated users (including anonymous commenters) can read profiles to view recipient info
+      allow read: if request.auth != null;
+
+      // Profiles create:
+      // - displayName is a string with size between 2 and 60
+      // - department, if present, is a string with size up to 60
+      // - uid must match request.auth.uid
+      // - createdAt must match request.time
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.displayName is string
+                    && request.resource.data.displayName.size() >= 2
+                    && request.resource.data.displayName.size() <= 60
+                    && (!('department' in request.resource.data) || (request.resource.data.department is string && request.resource.data.department.size() <= 60))
+                    && request.resource.data.createdAt == request.time;
+
+      // Profiles update:
+      // - only displayName and department may change (uid and createdAt stay the same)
+      // - same length limits
+      allow update: if request.auth != null
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == resource.data.uid
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'department'])
+                    && request.resource.data.displayName is string
+                    && request.resource.data.displayName.size() >= 2
+                    && request.resource.data.displayName.size() <= 60
+                    && (!('department' in request.resource.data) || (request.resource.data.department is string && request.resource.data.department.size() <= 60));
+
+      allow delete: if false;
+    }
+
     match /comments/{commentId} {
-      // Any authenticated user can post their own comment (max 1000 chars, valid timestamp)
+      // Comments create:
+      // - Any authenticated user can post their comment (max 1000 chars, valid timestamp)
+      // - Requires recipientName == profile's displayName (read via get() on the profile)
       allow create: if request.auth != null
                     && request.resource.data.uid == request.auth.uid
                     && request.resource.data.text is string
                     && request.resource.data.text.size() > 0
                     && request.resource.data.text.size() <= 1000
-                    && request.resource.data.createdAt == request.time;
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.recipientId is string
+                    && request.resource.data.recipientName == get(/databases/$(database)/documents/profiles/$(request.resource.data.recipientId)).data.displayName;
 
-      // Admin can read all; regular users can only read their own
-      allow read: if request.auth != null && 
-                  (request.auth.uid == "JBvDeeCFTuRiUwDZTRTbhYZvQPK2" || resource.data.uid == request.auth.uid);
+      // Three-party visibility rule: Admin, Commenter (author), Recipient
+      allow read: if request.auth != null && (
+        request.auth.uid == "JBvDeeCFTuRiUwDZTRTbhYZvQPK2" ||
+        resource.data.uid == request.auth.uid ||
+        resource.data.recipientUid == request.auth.uid
+      );
 
       // Prevent editing or deletion by anyone
       allow update, delete: if false;

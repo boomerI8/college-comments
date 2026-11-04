@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipient Dashboard - Campus Voice</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Lightweight pure-JS QRCode generator library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container" style="max-width: 650px;">
+    
+    <!-- Top Bar with User Info and Logout -->
+    <div class="admin-header no-print">
+      <div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Campus Voice Recipient</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="logoutBtn" class="btn-logout">Logout</button>
+      </div>
+    </div>
+
+    <!-- Recipient Profile Header Card -->
+    <div class="card no-print" id="profileCard">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h2 id="displayRecipientName" style="color: var(--primary); font-size: 1.4rem;">Loading...</h2>
+          <p id="displayRecipientDept" style="color: var(--text-muted); font-size: 0.95rem; margin-top: 2px;"></p>
+        </div>
+        <button id="toggleEditBtn" class="btn-secondary" style="width: auto; padding: 6px 14px; font-size: 0.85rem;">
+          Edit name
+        </button>
+      </div>
+
+      <!-- Inline Edit Name & Department Form -->
+      <div id="editSection" class="hidden" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <form id="editForm">
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;" for="editFullName">
+            Full Name <span style="color: var(--error);">*</span>
+          </label>
+          <input type="text" id="editFullName" maxlength="60" required placeholder="Full Name (2 to 60 characters)">
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: -4px; margin-bottom: 12px;">
+            Letters, spaces, dots, and hyphens only.
+          </p>
+
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;" for="editDepartment">
+            Department or Class
+          </label>
+          <input type="text" id="editDepartment" maxlength="60" placeholder="e.g. Petroleum Engineering, 8th Sem">
+
+          <div id="editAlert" class="alert"></div>
+
+          <div class="btn-group">
+            <button type="submit" id="saveEditBtn" style="flex: 1;">Save Changes</button>
+            <button type="button" id="cancelEditBtn" class="btn-secondary" style="flex: 1;">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Personal QR Card (Printable & Downloadable) -->
+    <div class="card qr-card" id="qrCardSection">
+      <div class="logo-placeholder no-print" style="width: 48px; height: 48px; font-size: 18px; margin-bottom: 8px;">UNI</div>
+      <h3 id="qrCardName" style="color: var(--primary); font-size: 1.3rem;">Recipient Name</h3>
+      <p id="qrCardDept" style="color: var(--text-muted); font-size: 0.92rem; margin-top: 2px;">Department</p>
+      
+      <div class="qr-wrapper">
+        <div id="qrcode"></div>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;">
+        Scan with any phone camera to leave an anonymous comment
+      </p>
+      <p id="qrTargetUrl" style="font-size: 0.75rem; font-family: monospace; color: var(--primary); word-break: break-all; margin-bottom: 14px;"></p>
+
+      <div class="btn-group no-print">
+        <button id="downloadPngBtn" class="btn-secondary" style="flex: 1;">
+          ⬇ Download PNG
+        </button>
+        <button id="printBtn" class="btn-secondary" style="flex: 1;">
+          🖨 Print QR Card
+        </button>
+      </div>
+
+      <div class="no-print" style="margin-top: 14px; text-align: center;">
+        <a id="previewPageLink" href="#" target="_blank" style="font-size: 0.88rem; color: var(--primary); text-decoration: none; font-weight: 500;">
+          Open Your Comment Page &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- Received Comments Section -->
+    <div class="no-print" id="receivedCommentsSection">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2>Comments Received</h2>
+        <span id="commentCountBadge" class="badge">0</span>
+      </div>
+
+      <div id="commentsList" class="comment-list">
+        <div class="card" style="text-align: center; color: var(--text-muted);">
+          Loading comments...
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

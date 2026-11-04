@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipient Sign-up - Campus Voice</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo-placeholder">UNI</div>
+      <h1 id="pageTitle">Receive Comments</h1>
+      <p id="pageSubtitle" style="color: var(--text-muted); font-size: 0.9rem;">Create your profile and get your personal QR code</p>
+    </div>
+
+    <!-- Sign-up Form -->
+    <div class="card" id="signupCard">
+      <form id="signupForm">
+        <div id="signupFields">
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;" for="fullName">
+            Full Name <span style="color: var(--error);">*</span>
+          </label>
+          <input type="text" id="fullName" placeholder="e.g. Dr. Sarah Jenkins or John Doe" maxlength="60" required autocomplete="name">
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: -4px; margin-bottom: 12px;">
+            2 to 60 characters (letters, spaces, dots, and hyphens only).
+          </p>
+
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;" for="department">
+            Department or Class <span style="font-weight: normal; color: var(--text-muted);">(Optional)</span>
+          </label>
+          <input type="text" id="department" placeholder="e.g. Petroleum Engineering, 8th Sem" maxlength="60">
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: -4px; margin-bottom: 12px;">
+            Helps commenters identify you and avoid mix-ups. Max 60 characters.
+          </p>
+        </div>
+
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;" for="email">
+          Email Address <span style="color: var(--error);">*</span>
+        </label>
+        <input type="email" id="email" placeholder="you@university.edu" required autocomplete="email">
+
+        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;" for="password">
+          Password <span style="color: var(--error);">*</span>
+        </label>
+        <input type="password" id="password" placeholder="At least 6 characters" minlength="6" required autocomplete="current-password">
+
+        <div id="alertBox" class="alert"></div>
+
+        <button type="submit" id="submitBtn">Create My QR Profile</button>
+      </form>
+
+      <div class="nav-links">
+        <span id="toggleText">Already have an account?</span>
+        <a href="#" id="toggleModeBtn">Log in here</a>
+      </div>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">&larr; Back to Campus Voice</a>
+    </div>
+  </div>
+
+  <script type="module" src="js/signup.js"></script>
+</body>
+</html>
